@@ -43,7 +43,7 @@ exports.getNextUniqueId = (callback) => {
   // fs.writefile to make a file for each todo
   // error first callback pattern
   // should give an id as a zero padded string
-  // should give the next id based on the count in the file
+  // should give the next id based on the count in the filelu
   // should update the counter file with the next value
 
   // readCounter(writeCounter(counter, callback));
