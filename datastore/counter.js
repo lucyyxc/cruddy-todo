@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const sprintf = require('sprintf-js').sprintf;
 
-var counter = 0;
+// var counter = 0;
 
 // Private helper functions ////////////////////////////////////////////////////
 
@@ -13,6 +13,8 @@ var counter = 0;
 
 const zeroPaddedNumber = (num) => {
   return sprintf('%05d', num);
+  // "%05d" % 24 => "00024"
+  // "%05d" % 245 => "00245"
 };
 
 const readCounter = (callback) => {
@@ -37,10 +39,27 @@ const writeCounter = (count, callback) => {
 };
 
 // Public API - Fix this function //////////////////////////////////////////////
+exports.getNextUniqueId = (callback) => {
+  // fs.writefile to make a file for each todo
+  // error first callback pattern
+  // should give an id as a zero padded string
+  // should give the next id based on the count in the file
+  // should update the counter file with the next value
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+  // readCounter(writeCounter(counter, callback));
+  // readCounter(cb) -> err -> cb(null, 0)
+  readCounter((err, counter) => {
+    writeCounter(counter += 1, (err, string) => {
+      callback(err, string);
+    });
+  });
+
+  // 1. first readconter with writecounter as a callback
+  // function with callback increament count number
+  //
+
+  // counter = counter + 1;
+  // return zeroPaddedNumber(counter);
 };
 
 
