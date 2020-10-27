@@ -2,8 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
+Promise.promisifyAll(fs);
 
-var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
@@ -18,7 +19,7 @@ exports.create = (text, callback) => {
         if (err) {
           throw err;
         } else {
-          callback(null, { 'id': id, 'text': text});
+          callback(null, { id: id, text: text });
         }
       });
     }
@@ -26,44 +27,28 @@ exports.create = (text, callback) => {
 
 };
 
-// [
-//   { id: '00015', text: '00015' },
-//   { id: '00016', text: '00016' },
-//   { id: '00017', text: '00017' },
-//   { id: '00018', text: '00018' },
-//   { id: '00019', text: '00019' },
-//   { id: '00020', text: '00020' },
-//   { id: '00021', text: '00021' },
-//   { id: '00022', text: '00022' },
-//   { id: '00023', text: '00023' }
-// ]
-
 exports.readAll = (callback) => {
 
   fs.readdir(exports.dataDir, (err, files) => {
     if (err) {
-      callback(new Error('No directory'));
+      throw ('No directory');
     } else {
       var data = files.map((file) => {
         var id = file.slice(0, 5);
-        return { 'id': id, 'text': id};
+        var filePath = path.join(exports.dataDir, file);
+        return fs.readFileAsync(filePath)
+          .then((todo) => {
+            return { id: id, text: todo.toString() };
+          })
+          .catch((err) => {
+            console.log('Fail to read files');
+          });
       });
-      callback(null, data);
+      Promise.all(data).then(items => callback(null, items), err => callback(err));
+      // Promise.all() method takes iterable of promises as an input, and returns a single Promise that resolve to an array of the results of the input promises.
     }
   });
 };
-
-// [
-//   { id: '00015', text: '00015' },
-//   { id: '00016', text: '00016' },
-//   { id: '00017', text: '00017' },
-//   { id: '00018', text: '00018' },
-//   { id: '00019', text: '00019' },
-//   { id: '00020', text: '00020' },
-//   { id: '00021', text: '00021' },
-//   { id: '00022', text: '00022' },
-//   { id: '00023', text: '00023' }
-// ]
 
 exports.readOne = (id, callback) => {
 
@@ -102,14 +87,14 @@ exports.delete = (id, callback) => {
   var idPath = path.join(exports.dataDir, `${id}.txt`);
   fs.readFile(idPath, (err, file) => {
     if (err) {
-      callback(new Error('No file'));
+      callback(err);
     } else {
       fs.unlink(idPath, (err) => {
         if (err) {
-          throw err;
+          callback(err);
         } else {
-          var text = file.toString();
-          callback(null, { 'id': id, 'text': text});
+          console.log('deleted file');
+          callback(null);
         }
       });
     }
